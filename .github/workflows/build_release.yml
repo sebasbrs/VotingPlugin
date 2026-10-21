@@ -1,0 +1,35 @@
+name: Build and Release Plugin (Maven)
+
+on:
+  workflow_dispatch: # Te permite activar el build manualmente con un botón
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Permiso crucial para que el script pueda crear el Release
+
+    steps:
+    - name: Descargar codigo fuente
+      uses: actions/checkout@v4
+
+    - name: Configurar Java JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21' # Cámbiala si el plugin es para versiones muy viejas o muy nuevas de Minecraft
+        distribution: 'temurin'
+        cache: 'maven' # Guarda en caché las dependencias para que los próximos builds sean más rápidos
+
+    - name: Compilar con Maven
+      run: mvn clean package --batch-mode -f VotingPlugin/pom.xml
+
+    - name: Crear GitHub Release y subir JAR
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v1.0.0-custom
+        name: "Release Manual - Compilación Personalizada"
+        body: |
+          Plugin compilado automáticamente mediante GitHub Actions desde el código fuente del fork.
+        draft: false
+        prerelease: false
+        files: target/*.jar # Maven por defecto guarda el archivo compilado aquí
